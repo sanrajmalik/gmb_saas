@@ -1,0 +1,6 @@
+@GmbSaas.Backend_HostAddress = http://localhost:5287
+
+GET {{GmbSaas.Backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

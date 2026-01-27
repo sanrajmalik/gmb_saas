@@ -1,0 +1,58 @@
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gmb_saas_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: gmb_saas_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d gmb_saas_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gmb_network
+
+  backend:
+    build:
+      context: ./backend/GmbSaas.Backend
+      dockerfile: Dockerfile
+    container_name: gmb_saas_backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=gmb_saas_db;Username=admin;Password=password123;
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - gmb_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gmb_saas_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - gmb_network
+
+networks:
+  gmb_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
