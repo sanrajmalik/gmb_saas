@@ -45,7 +45,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Services
-builder.Services.AddScoped<ISerpApiService, SerpApiService>();
+// Services
+builder.Services.AddHttpClient<DataForSeoService>();
+builder.Services.AddScoped<SerpApiService>();
+builder.Services.AddScoped<DataForSeoService>();
+
+var activeProvider = builder.Configuration["SerpSettings:ActiveProvider"];
+if (activeProvider == "DataForSeo")
+{
+    builder.Services.AddScoped<ISerpApiService>(sp => sp.GetRequiredService<DataForSeoService>());
+}
+else
+{
+    builder.Services.AddScoped<ISerpApiService>(sp => sp.GetRequiredService<SerpApiService>());
+}
+builder.Services.AddScoped<LocationService>();
 
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

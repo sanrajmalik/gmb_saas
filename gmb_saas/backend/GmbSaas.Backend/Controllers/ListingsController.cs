@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Text; // Added
 
 namespace GmbSaas.Backend.Controllers;
 
@@ -184,6 +185,40 @@ public class ListingsController : ControllerBase
             .ToListAsync();
 
         return Ok(keywords);
+    }
+
+    [HttpDelete("keywords/{id}")]
+    public async Task<ActionResult> DeleteKeyword(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+        var uid = Guid.Parse(userId);
+
+        var keyword = await _context.Keywords.Include(k => k.Listing).FirstOrDefaultAsync(k => k.Id == id);
+        if (keyword == null) return NotFound();
+        if (keyword.Listing?.OwnerId != uid) return Forbid();
+
+        _context.Keywords.Remove(keyword);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteListing(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+        var uid = Guid.Parse(userId);
+
+        var listing = await _context.Listings.FindAsync(id);
+        if (listing == null) return NotFound();
+        if (listing.OwnerId != uid) return Forbid();
+
+        _context.Listings.Remove(listing);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 
     // Rank Check Endpoint
@@ -467,6 +502,34 @@ public class ListingsController : ControllerBase
         catch (Exception ex)
         {
              return StatusCode(500, ex.Message);
+        }
+    }
+    [HttpGet("locations")]
+    public async Task<ActionResult> GetLocations([FromQuery] string q, [FromQuery] string country = "US", [FromServices] GmbSaas.Backend.Services.LocationService locationService = null)
+    {
+         if (string.IsNullOrEmpty(q)) return BadRequest("Query is required.");
+         
+         if (locationService != null)
+         {
+             var results = await locationService.SearchLocationsAsync(q, country.ToUpper());
+             return Ok(results);
+         }
+         
+         return StatusCode(500, "LocationService not available");
+    }
+
+    [HttpPost("locations/sync")]
+    public async Task<ActionResult> SyncLocations([FromQuery] string country = "US", [FromServices] GmbSaas.Backend.Services.LocationService locationService = null)
+    {
+        if (locationService == null) return StatusCode(500, "LocationService not available");
+        try
+        {
+            await locationService.SyncLocationsAsync(country);
+            return Ok($"Locations for {country} synced successfully.");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
         }
     }
 }

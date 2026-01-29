@@ -17,6 +17,17 @@ public class CreateListingDto
     public int ReviewCount { get; set; }
     public string ThumbnailUrl { get; set; } = string.Empty;
     public DateTime? ClientCreatedAt { get; set; }
+
+    public string PhoneNumber { get; set; } = string.Empty;
+    public bool IsClaimed { get; set; }
+    public string Categories { get; set; } = string.Empty;
+    public string WorkHours { get; set; } = string.Empty;
+    public string Cid { get; set; } = string.Empty;
+    public string FeatureId { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
+    public string Zip { get; set; } = string.Empty;
+    public string LocationName { get; set; } = string.Empty;
 }
 
 public class ListingDto
@@ -33,4 +44,16 @@ public class ListingDto
     public double Rating { get; set; }
     public int ReviewCount { get; set; }
     public string ThumbnailUrl { get; set; } = string.Empty;
+
+    public string PhoneNumber { get; set; } = string.Empty;
+    public bool IsClaimed { get; set; }
+    public string Categories { get; set; } = string.Empty;
+    public string WorkHours { get; set; } = string.Empty;
+    public string Cid { get; set; } = string.Empty;
+    public string FeatureId { get; set; } = string.Empty;
+    
+    public string City { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
+    public string Zip { get; set; } = string.Empty;
+    public string LocationName { get; set; } = string.Empty;
 }

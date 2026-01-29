@@ -119,7 +119,10 @@ const GeoGrid = () => {
         return '#ef4444'; // Red
     };
 
-    const centerPoint = gridData ? gridData.center : [28.6139, 77.2090];
+    const currentListing = listings.find(l => l.id === selectedListing);
+    const centerPoint = gridData
+        ? gridData.center
+        : (currentListing ? [currentListing.latitude, currentListing.longitude] : [28.6139, 77.2090]);
 
     return (
         <div className="h-full flex flex-col gap-6">

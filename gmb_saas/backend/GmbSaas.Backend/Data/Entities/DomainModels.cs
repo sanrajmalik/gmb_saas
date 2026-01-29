@@ -10,8 +10,22 @@ public class Listing
     public string Address { get; set; } = string.Empty;
     public string PlaceId { get; set; } = string.Empty; // Google Place ID
     public string WebsiteUrl { get; set; } = string.Empty;
+    public string CountryCode { get; set; } = "US"; // Default to US
     
-    // Rich Data
+    // Rich Data & SEO Context
+    public string PhoneNumber { get; set; } = string.Empty;
+    public bool IsClaimed { get; set; }
+    public string Categories { get; set; } = string.Empty; // JSON: ["software_company", ...]
+    public string WorkHours { get; set; } = string.Empty; // JSON object
+    
+    public string Cid { get; set; } = string.Empty;
+    public string FeatureId { get; set; } = string.Empty;
+    
+    public string City { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
+    public string Zip { get; set; } = string.Empty;
+    public string LocationName { get; set; } = string.Empty; // Context for Rank Tracking e.g. "New York, NY"
+
     public double Latitude { get; set; }
     public double Longitude { get; set; }
     public double Rating { get; set; }
@@ -115,4 +129,13 @@ public class GeoGridCompetitor
     public int Rank { get; set; }
 
     public GeoGridPoint? Point { get; set; }
+}
+
+public class CachedLocation
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    [Required] 
+    public string Name { get; set; } = string.Empty; // Full name e.g. "New York, NY, United States"
+    public string Type { get; set; } = string.Empty; // "City", "State", etc.
+    public string CountryCode { get; set; } = string.Empty; // "US"
 }

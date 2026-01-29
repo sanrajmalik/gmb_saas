@@ -16,5 +16,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Entities.GeoGridScan> GeoGridScans { get; set; }
     public DbSet<Entities.GeoGridPoint> GeoGridPoints { get; set; }
     public DbSet<Entities.GeoGridCompetitor> GeoGridCompetitors { get; set; }
+    public DbSet<Entities.CachedLocation> CachedLocations { get; set; }
     public DbSet<Entities.User> Users { get; set; }
 }

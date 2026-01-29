@@ -3,6 +3,7 @@ using System;
 using GmbSaas.Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GmbSaas.Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260128093435_AddCachedLocations")]
+    partial class AddCachedLocations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -201,18 +204,6 @@ namespace GmbSaas.Backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Categories")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Cid")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("CountryCode")
                         .IsRequired()
                         .HasColumnType("text");
@@ -220,19 +211,8 @@ namespace GmbSaas.Backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("FeatureId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsClaimed")
-                        .HasColumnType("boolean");
-
                     b.Property<double>("Latitude")
                         .HasColumnType("double precision");
-
-                    b.Property<string>("LocationName")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<double>("Longitude")
                         .HasColumnType("double precision");
@@ -244,10 +224,6 @@ namespace GmbSaas.Backend.Migrations
                     b.Property<Guid?>("OwnerId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("PlaceId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -258,23 +234,11 @@ namespace GmbSaas.Backend.Migrations
                     b.Property<int>("ReviewCount")
                         .HasColumnType("integer");
 
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("ThumbnailUrl")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("WebsiteUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("WorkHours")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Zip")
                         .IsRequired()
                         .HasColumnType("text");
 
