@@ -131,7 +131,7 @@ public class SerpApiService : ISerpApiService
         }
     }
 
-    public async Task<Dictionary<string, SerpResult>> GetGeoGridRankAsync(string keyword, string placeId, double lat, double lng, int radiusKm, int gridSize)
+    public async Task<Dictionary<string, SerpResult>> GetGeoGridRankAsync(string keyword, string placeId, string listingName,double lat, double lng, int radiusKm, int gridSize)
     {
         // 1. Generate Grid Points
         var points = GenerateGridPoints(lat, lng, radiusKm, gridSize);

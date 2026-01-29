@@ -43,7 +43,18 @@ public class ListingsController : ControllerBase
                 Longitude = l.Longitude,
                 Rating = l.Rating,
                 ReviewCount = l.ReviewCount,
-                ThumbnailUrl = l.ThumbnailUrl
+                ThumbnailUrl = l.ThumbnailUrl,
+                
+                PhoneNumber = l.PhoneNumber,
+                IsClaimed = l.IsClaimed,
+                Categories = l.Categories,
+                WorkHours = l.WorkHours,
+                Cid = l.Cid,
+                FeatureId = l.FeatureId,
+                City = l.City,
+                State = l.State,
+                Zip = l.Zip,
+                LocationName = l.LocationName
             })
             .ToListAsync();
 
@@ -76,7 +87,18 @@ public class ListingsController : ControllerBase
             Longitude = listing.Longitude,
             Rating = listing.Rating,
             ReviewCount = listing.ReviewCount,
-            ThumbnailUrl = listing.ThumbnailUrl
+            ThumbnailUrl = listing.ThumbnailUrl,
+            
+            PhoneNumber = listing.PhoneNumber,
+            IsClaimed = listing.IsClaimed,
+            Categories = listing.Categories,
+            WorkHours = listing.WorkHours,
+            Cid = listing.Cid,
+            FeatureId = listing.FeatureId,
+            City = listing.City,
+            State = listing.State,
+            Zip = listing.Zip,
+            LocationName = listing.LocationName
         };
     }
 
@@ -109,7 +131,19 @@ public class ListingsController : ControllerBase
             Rating = dto.Rating,
             ReviewCount = dto.ReviewCount,
             ThumbnailUrl = dto.ThumbnailUrl,
-            CreatedAt = dto.ClientCreatedAt ?? DateTime.UtcNow
+            CreatedAt = dto.ClientCreatedAt ?? DateTime.UtcNow,
+            
+            // Extended Fields
+            PhoneNumber = dto.PhoneNumber,
+            IsClaimed = dto.IsClaimed,
+            Categories = dto.Categories,
+            WorkHours = dto.WorkHours,
+            Cid = dto.Cid,
+            FeatureId = dto.FeatureId,
+            City = dto.City,
+            State = dto.State,
+            Zip = dto.Zip,
+            LocationName = dto.LocationName
         };
 
         _context.Listings.Add(listing);
@@ -122,7 +156,24 @@ public class ListingsController : ControllerBase
             Address = listing.Address,
             PlaceId = listing.PlaceId,
             WebsiteUrl = listing.WebsiteUrl,
-            CreatedAt = listing.CreatedAt
+            CreatedAt = listing.CreatedAt,
+            
+            Latitude = listing.Latitude,
+            Longitude = listing.Longitude,
+            Rating = listing.Rating,
+            ReviewCount = listing.ReviewCount,
+            ThumbnailUrl = listing.ThumbnailUrl,
+            
+            PhoneNumber = listing.PhoneNumber,
+            IsClaimed = listing.IsClaimed,
+            Categories = listing.Categories,
+            WorkHours = listing.WorkHours,
+            Cid = listing.Cid,
+            FeatureId = listing.FeatureId,
+            City = listing.City,
+            State = listing.State,
+            Zip = listing.Zip,
+            LocationName = listing.LocationName
         };
 
         return CreatedAtAction(nameof(GetListings), new { id = listing.Id }, createdDto);
@@ -299,6 +350,7 @@ public class ListingsController : ControllerBase
         var results = await serpService.GetGeoGridRankAsync(
             dto.Keyword, 
             listing.PlaceId, 
+            listing.Name,
             dto.CenterLat, 
             dto.CenterLng, 
             dto.RadiusKm, 

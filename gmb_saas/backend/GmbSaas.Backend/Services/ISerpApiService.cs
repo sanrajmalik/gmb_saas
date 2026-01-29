@@ -20,7 +20,7 @@ public class SerpCompetitor
 public interface ISerpApiService
 {
     Task<SerpResult> GetRankWithCompetitorsAsync(string keyword, string placeId, string location);
-    Task<Dictionary<string, SerpResult>> GetGeoGridRankAsync(string keyword, string placeId, double lat, double lng, int radiusKm, int gridSize);
+    Task<Dictionary<string, SerpResult>> GetGeoGridRankAsync(string keyword, string placeId, string listingName, double lat, double lng, int radiusKm, int gridSize);
     // Legacy simple rank check might be deprecated or just wrap the new one
     Task<int> GetRankAsync(string keyword, string placeId, string location);
     
@@ -64,4 +64,5 @@ public class ListingSearchResult
     public string City { get; set; } = string.Empty;
     public string State { get; set; } = string.Empty;
     public string Zip { get; set; } = string.Empty;
+    public string LocationName { get; set; } = string.Empty;
 }

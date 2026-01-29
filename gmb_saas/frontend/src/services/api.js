@@ -30,6 +30,8 @@ const getHeaders = (includeContentType = true) => {
     return headers;
 };
 
+import toast from 'react-hot-toast';
+
 /**
  * Handle API response
  */
@@ -43,16 +45,25 @@ const handleResponse = async (response) => {
     }
 
     if (response.status === 402) {
+        toast.error('Insufficient credits');
         throw new Error('Insufficient credits');
     }
 
     if (response.status === 403) {
+        toast.error('Access denied or limit reached');
         throw new Error('Access denied or limit reached');
     }
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Request failed with status ${response.status}`);
+        const message = errorData.message || `Request failed with status ${response.status}`;
+
+        // Don't toast for 404s if they are expected "not found" checks? 
+        // Usually 404 is an error in typical flow, so toast it unless specifically handled.
+        // For now, toast everything.
+        toast.error(message);
+
+        throw new Error(message);
     }
 
     // Handle empty responses

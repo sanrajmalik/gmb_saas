@@ -50,6 +50,19 @@ services:
     networks:
       - gmb_network
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: gmb_saas_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - gmb_network
+
 networks:
   gmb_network:
     driver: bridge

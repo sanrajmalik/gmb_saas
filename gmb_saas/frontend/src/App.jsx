@@ -9,6 +9,7 @@ import ListingDetail from './pages/ListingDetail';
 import GeoGrid from './pages/GeoGrid';
 import CompetitorAnalysis from './pages/CompetitorAnalysis';
 import RankTracking from './pages/RankTracking';
+import { Toaster } from 'react-hot-toast';
 
 // Replace with your actual Google Client ID
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
@@ -87,12 +88,14 @@ function AppRoutes() {
   );
 }
 
+
 function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <Router>
           <AppRoutes />
+          <Toaster position="top-right" />
         </Router>
       </AuthProvider>
     </GoogleOAuthProvider>

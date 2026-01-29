@@ -2,6 +2,9 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace GmbSaas.Backend.Services;
 
@@ -39,8 +42,7 @@ public class DataForSeoService : ISerpApiService
         {
             ["keyword"] = query,
             ["language_code"] = "en",
-            ["device"] = "desktop",
-            ["os"] = "windows",
+            ["device"] = "mobile",
             ["depth"] = 20 // Fetch up to 20
         };
 
@@ -225,77 +227,87 @@ public class DataForSeoService : ISerpApiService
         return res.UserRank;
     }
 
-    public async Task<Dictionary<string, SerpResult>> GetGeoGridRankAsync(string keyword, string placeId, double lat, double lng, int radiusKm, int gridSize)
+    public async Task<Dictionary<string, SerpResult>> GetGeoGridRankAsync(string keyword, string placeId, string listingName, double lat, double lng, int radiusKm, int gridSize)
     {
-         // 1. Generate Grid Points (Reused logic, copy-pasted or shared? Better to make shared util, but for now duplicate to avoid big refactor)
-         // NOTE: DataForSeo DOES support batch tasks (up to 2000). We should USE that properly instead of loop!
-         // This is a huge optimization over SerpApi loop.
-         
          var points = GenerateGridPoints(lat, lng, radiusKm, gridSize);
-         var results = new Dictionary<string, SerpResult>();
-         
-         // Batch sizes: DataForSEO allows many, but let's do safe chunks of 100 if needed. Grid is usually 7x7=49, so 1 batch is fine.
-         
-         var tasksArray = new JArray();
-         foreach(var p in points)
+         var results = new ConcurrentDictionary<string, SerpResult>();
+
+         // Maps Live endpoint only supports 1 task per request. We must run in parallel.
+         // Limit concurrency to avoid hitting API rate limits too hard (e.g. 10 at a time)
+         var semaphore = new SemaphoreSlim(5); 
+         var tasks = points.Select(async p => 
          {
-             var taskObj = new JObject
+             await semaphore.WaitAsync();
+             try
              {
-                 ["keyword"] = keyword,
-                 ["location_coordinate"] = $"{p.Lat},{p.Lng}",
-                 ["language_code"] = "en",
-                 ["depth"] = 20,
-                 ["tag"] = $"{p.Lat},{p.Lng}" // Use tag to map back results!
-             };
-             tasksArray.Add(taskObj);
-         }
-         
-         var content = new StringContent(tasksArray.ToString(), Encoding.UTF8, "application/json");
-         var response = await _httpClient.PostAsync("v3/serp/google/maps/live/advanced", content);
-         
-         if (!response.IsSuccessStatusCode) throw new Exception($"DataForSeo Batch Error: {response.StatusCode}");
-         
-         var respString = await response.Content.ReadAsStringAsync();
-         var respJson = JObject.Parse(respString);
-         
-         var returnedTasks = respJson["tasks"] as JArray;
-         if (returnedTasks != null)
-         {
-             foreach (JObject task in returnedTasks)
-             {
-                 var tag = task["data"]?["tag"]?.ToString(); // "lat,lng"
-                 if (tag == null) continue;
-                 
-                 var serpResult = new SerpResult();
-                 var resultObj = task["result"] as JArray;
-                 if (resultObj != null && resultObj.Count > 0)
+                 var taskObj = new JObject
                  {
-                     var items = resultObj[0]["items"] as JArray;
-                     if (items != null)
+                     ["keyword"] = keyword,
+                     ["location_coordinate"] = $"{p.Lat},{p.Lng},14z",
+                     ["language_code"] = "en",
+                     ["depth"] = 10,
+                     ["device"]="mobile"
+                 };
+
+                 var singleTaskArray = new JArray { taskObj };
+                 var content = new StringContent(singleTaskArray.ToString(), Encoding.UTF8, "application/json");
+                 
+                 var response = await _httpClient.PostAsync("v3/serp/google/maps/live/advanced", content);
+                 if (!response.IsSuccessStatusCode) return; // Skip failed points or log them
+
+                 var respString = await response.Content.ReadAsStringAsync();
+                 var respJson = JObject.Parse(respString);
+                 var firstTask = respJson["tasks"]?[0];
+                 
+                 if (firstTask != null)
+                 {
+                     var serpResult = new SerpResult();
+                     var resultObj = firstTask["result"] as JArray;
+                     if (resultObj != null && resultObj.Count > 0)
                      {
-                         foreach (JObject item in items)
+                         var items = resultObj[0]["items"] as JArray;
+                         if (items != null)
                          {
-                              if (item["type"]?.ToString() != "maps_search") continue;
-                              var pid = item["place_id"]?.ToString() ?? "";
-                              var rank = item["rank_absolute"]?.Value<int>() ?? 0;
-                              
-                              serpResult.Competitors.Add(new SerpCompetitor
-                              {
-                                 Rank = rank,
-                                 Name = item["title"]?.ToString() ?? "",
-                                 PlaceId = pid
-                              });
-                              
-                              if (pid == placeId) serpResult.UserRank = rank;
+                             foreach (JObject item in items)
+                             {
+                                  if (item["type"]?.ToString() != "maps_search") continue;
+                                  var pid = item["place_id"]?.ToString() ?? "";
+                                  var title = item["title"]?.ToString() ?? "";
+                                  var rank = item["rank_absolute"]?.Value<int>() ?? 0;
+                                  
+                                  serpResult.Competitors.Add(new SerpCompetitor
+                                  {
+                                     Rank = rank,
+                                     Name = title,
+                                     PlaceId = pid
+                                  });
+                                  
+                                  bool isMatch = pid == placeId;
+                                  if (!isMatch && !string.IsNullOrEmpty(listingName))
+                                  {
+                                      if (title.Equals(listingName, StringComparison.OrdinalIgnoreCase)) isMatch = true;
+                                  }
+
+                                  if (isMatch) serpResult.UserRank = rank;
+                             }
                          }
                      }
+                     results[$"{p.Lat},{p.Lng}"] = serpResult;
                  }
-                 
-                 results[tag] = serpResult;
              }
-         }
+             catch
+             {
+                 // Ignore individual failures for now to keep grid going
+             }
+             finally
+             {
+                 semaphore.Release();
+             }
+         });
+
+         await Task.WhenAll(tasks);
          
-         return results;
+         return results.ToDictionary(k => k.Key, v => v.Value);
     }
 
     public async Task<List<ReviewResult>> GetReviewsAsync(string placeId)
